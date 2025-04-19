@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { Bolt, AlertCircle } from "lucide-react";
+import { Bolt, AlertCircle, FileJson, Clock, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResponseDisplay from "./response-display";
 import { formatBytes } from "@/lib/utils";
 
@@ -9,7 +13,6 @@ const WORKER_ENDPOINT = "https://english-gemini-worker1.des9891sl.workers.dev/";
 type WordType = "Nouns" | "Verbs" | "Idioms";
 
 interface ResponseData {
-  selectedType: WordType;
   data: any;
   time: number;
   size: string;
@@ -21,10 +24,21 @@ export default function ApiTestPanel() {
   const [error, setError] = useState<string | null>(null);
   const [lastTested, setLastTested] = useState<Date | null>(null);
   const [selectedType, setSelectedType] = useState<WordType>("Nouns");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleTestWorker = async () => {
     setIsLoading(true);
     setError(null);
+    
+    // Dispatch event to update status panel
+    const updateStatusEvent = new CustomEvent('workerStatusUpdate', {
+      detail: {
+        status: 'idle',
+        message: 'Fetching data from worker...',
+        time: new Date()
+      }
+    });
+    window.dispatchEvent(updateStatusEvent);
     
     try {
       const startTime = performance.now();
@@ -51,13 +65,59 @@ export default function ApiTestPanel() {
         time: responseTimeMs,
         size: formattedSize
       });
-      setLastTested(new Date());
+      
+      const now = new Date();
+      setLastTested(now);
+      setDialogOpen(true);
+      
+      // Dispatch success event to update status panel
+      const successEvent = new CustomEvent('workerStatusUpdate', {
+        detail: {
+          status: 'success',
+          message: `Successfully fetched ${Array.isArray(data) ? data.length + ' items' : 'data'}`,
+          time: now
+        }
+      });
+      window.dispatchEvent(successEvent);
     } catch (err: any) {
       console.error('Error fetching from worker:', err);
       setError(err.message || 'Failed to connect to the worker');
+      
+      // Dispatch error event to update status panel
+      const errorEvent = new CustomEvent('workerStatusUpdate', {
+        detail: {
+          status: 'error',
+          message: err.message || 'Failed to connect to the worker',
+          time: new Date()
+        }
+      });
+      window.dispatchEvent(errorEvent);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  // Create a summary of the response data
+  const getResponseSummary = () => {
+    if (!response) return null;
+    
+    const data = response.data;
+    let summary = "";
+    
+    if (Array.isArray(data)) {
+      summary = `${data.length} items returned`;
+    } else if (typeof data === "object") {
+      const keys = Object.keys(data);
+      summary = `Object with ${keys.length} properties`;
+    } else {
+      summary = `${typeof data} value received`;
+    }
+    
+    return summary;
   };
 
   return (
@@ -122,8 +182,81 @@ export default function ApiTestPanel() {
         </div>
       )}
 
-      {/* Response Section */}
-      {response && <ResponseDisplay response={response} />}
+      {/* Response Summary Card */}
+      {response && !dialogOpen && (
+        <Card className="mt-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>Response Summary</span>
+              <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">
+                Success
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className="text-sm">{response.time} ms</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Database className="h-4 w-4 text-gray-500" />
+                <span className="text-sm">{response.size}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FileJson className="h-4 w-4 text-gray-500" />
+                <span className="text-sm">{getResponseSummary()}</span>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              className="w-full mt-3"
+              onClick={() => setDialogOpen(true)}
+            >
+              View Full Response
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Response Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[80vw] max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Worker Response</DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="formatted" className="flex-1 overflow-hidden flex flex-col">
+            <TabsList className="grid grid-cols-2 w-60 mb-4">
+              <TabsTrigger value="formatted">Formatted</TabsTrigger>
+              <TabsTrigger value="raw">Raw</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="formatted" className="flex-1 overflow-auto">
+              {response && <ResponseDisplay response={response} />}
+            </TabsContent>
+            
+            <TabsContent value="raw" className="flex-1 overflow-auto">
+              {response && (
+                <div className="bg-[#F5F5F5] p-4 rounded-md h-full">
+                  <div className="overflow-auto bg-white border border-gray-200 rounded p-3 h-full">
+                    <pre className="text-sm font-mono whitespace-pre-wrap">
+                      {JSON.stringify(response.data, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          {response && (
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200 text-xs text-gray-500">
+              <span>Response time: <span className="font-semibold">{response.time} ms</span></span>
+              <span>Size: <span className="font-semibold">{response.size}</span></span>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

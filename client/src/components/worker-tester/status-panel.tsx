@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 
 interface StatusPanelProps {
   status?: "success" | "error" | "idle";
@@ -48,27 +49,51 @@ export default function StatusPanel({
     });
   };
 
-  const getStatusColor = () => {
+  const getStatusIcon = () => {
     switch (currentStatus) {
       case "success":
-        return "bg-[#4CAF50]";
+        return <CheckCircle2 className="h-5 w-5 text-[#4CAF50]" />;
       case "error":
-        return "bg-[#F44336]";
+        return <AlertCircle className="h-5 w-5 text-[#F44336]" />;
       default:
-        return "bg-gray-400";
+        return <Clock className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusClasses = () => {
+    switch (currentStatus) {
+      case "success":
+        return "bg-[#4CAF50]/10 border-[#4CAF50]/20 text-[#4CAF50]";
+      case "error":
+        return "bg-[#F44336]/10 border-[#F44336]/20 text-[#F44336]";
+      default:
+        return "bg-gray-100 border-gray-200 text-gray-500";
+    }
+  };
+
+  const getStatusText = () => {
+    switch (currentStatus) {
+      case "success":
+        return "Success";
+      case "error":
+        return "Error";
+      default:
+        return "Ready";
     }
   };
 
   return (
-    <div className="flex items-center justify-between rounded-md bg-[#F5F5F5] p-3 text-sm">
-      <div className="flex items-center">
-        <span 
-          className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusColor()}`} 
-        />
-        <span>{currentMessage}</span>
+    <div className={`flex items-center justify-between rounded-md p-3 text-sm border ${getStatusClasses()}`}>
+      <div className="flex items-center space-x-2">
+        {getStatusIcon()}
+        <div>
+          <div className="font-medium">{getStatusText()}</div>
+          <div className="text-xs opacity-80">{currentMessage}</div>
+        </div>
       </div>
       {lastTestedTime && (
-        <div className="text-gray-500">
+        <div className="text-xs opacity-70 flex items-center">
+          <Clock className="h-3.5 w-3.5 mr-1.5" />
           {formatTime(lastTestedTime)}
         </div>
       )}
