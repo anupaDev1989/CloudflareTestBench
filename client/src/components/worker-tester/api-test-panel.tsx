@@ -64,6 +64,17 @@ export default function ApiTestPanel() {
     <div className="space-y-4">
       <div className="space-y-4">
         <h2 className="text-lg font-medium text-[#333333]">Test Your Worker</h2>
+        
+        {/* Request Preview */}
+        <div className="bg-[#F5F5F5] p-4 rounded-md">
+          <h3 className="font-medium mb-2">Request Preview</h3>
+          <div className="overflow-auto bg-white border border-gray-200 rounded p-3">
+            <pre className="text-sm font-mono whitespace-pre-wrap">
+              {JSON.stringify({ type: selectedType }, null, 2)}
+            </pre>
+          </div>
+        </div>
+
         <div className="flex gap-4">
           {["Nouns", "Verbs", "Idioms"].map((type) => (
             <label key={type} className="flex items-center space-x-2">
