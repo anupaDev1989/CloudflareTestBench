@@ -14,31 +14,35 @@ interface ResponseDisplayProps {
 export default function ResponseDisplay({ response }: ResponseDisplayProps) {
   const [copied, setCopied] = useState(false);
 
-  const formatResponse = (data: string) => {
-    // Remove any markdown-style formatting
-    let text = data.replace(/```/g, '');
+  const formatResponse = (data: any) => {
+    if (!Array.isArray(data)) return null;
     
-    // Split into sections based on numbering or bullet points
-    const sections = text.split(/(?:\d+\.|•|\*)\s+/).filter(Boolean);
-    
-    // Format each section
-    return sections.map((section, index) => {
-      const [title, ...content] = section.split(':').map(s => s.trim());
-      if (content.length) {
-        return (
-          <div key={index} className="mb-4 last:mb-0">
-            <h4 className="font-medium text-primary mb-1">{title}:</h4>
-            <p className="text-gray-700">{content.join(':')}</p>
+    return data.map((item, index) => (
+      <div key={index} className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+          <h3 className="text-lg font-semibold text-primary">{item.word}</h3>
+        </div>
+        <div className="p-4 space-y-3">
+          <div>
+            <h4 className="font-medium text-gray-700 mb-1">Meaning:</h4>
+            <p className="text-gray-600">{item.meaning}</p>
           </div>
-        );
-      }
-      return <p key={index} className="mb-2 text-gray-700">{section}</p>;
-    });
+          <div>
+            <h4 className="font-medium text-gray-700 mb-1">Examples:</h4>
+            <ul className="list-disc list-inside space-y-1">
+              {item.examples.map((example: string, i: number) => (
+                <li key={i} className="text-gray-600 ml-2">{example}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    ));
   };
 
   const handleCopyResponse = async () => {
     try {
-      await navigator.clipboard.writeText(typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify(response.data, null, 2));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -70,13 +74,8 @@ export default function ResponseDisplay({ response }: ResponseDisplayProps) {
         </Button>
       </div>
       
-      <div className="bg-white border border-gray-200 rounded-md p-4 max-h-[400px] overflow-y-auto">
-        <div className="prose prose-sm">
-          {typeof response.data === 'string' 
-            ? formatResponse(response.data)
-            : <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(response.data, null, 2)}</pre>
-          }
-        </div>
+      <div className="bg-white border border-gray-200 rounded-md p-4 max-h-[600px] overflow-y-auto">
+        {formatResponse(response.data)}
       </div>
 
       <div className="flex justify-between items-center mt-3 text-sm text-gray-600">
