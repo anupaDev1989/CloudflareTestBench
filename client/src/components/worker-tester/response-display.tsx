@@ -27,9 +27,9 @@ export default function ResponseDisplay({ response }: ResponseDisplayProps) {
   const [copied, setCopied] = useState(false);
 
   const formatJson = (json: any) => {
-    const jsonString = JSON.stringify(json, null, 2);
-
-    return jsonString.replace(
+    try {
+      const jsonString = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
+      return jsonString.replace(
       /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
       (match) => {
         let cls = 'text-[#F57C00]'; // number

@@ -95,11 +95,11 @@ export default function ApiTestPanel() {
         data = responseText; // Store text directly for non-JSON responses
       }
 
-      const responseSize = responseText.length;
+      const responseSize = new TextEncoder().encode(responseText).length;
       const formattedSize = formatBytes(responseSize);
 
-      setResponse({
-        data,
+      const responseData = {
+        data: isJson ? data : responseText,
         time: responseTimeMs,
         size: formattedSize,
         contentType,
@@ -107,7 +107,9 @@ export default function ApiTestPanel() {
         status: response.status,
         statusText: response.statusText,
         headers
-      });
+      };
+      
+      setResponse(responseData);
       setLastTested(new Date());
 
       // Dispatch custom event for status panel
