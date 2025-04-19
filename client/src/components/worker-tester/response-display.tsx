@@ -1,8 +1,13 @@
 import { useState } from "react";
-import { Check, Clipboard, FileJson, FileText, ChevronDown, ChevronUp, Server } from "lucide-react";
+import { Check, Clipboard, FileJson, FileText, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
 
 interface ResponseDisplayProps {
   response: {
