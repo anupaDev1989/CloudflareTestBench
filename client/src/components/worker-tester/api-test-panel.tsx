@@ -5,9 +5,11 @@ import ResponseDisplay from "./response-display";
 import { formatBytes } from "@/lib/utils";
 
 const WORKER_ENDPOINT = "https://english-gemini-worker1.des9891sl.workers.dev/";
-const IDIOM_PROMPT = "List 3 idioms with their meanings and an example sentense for each idiom";
+
+type WordType = "Nouns" | "Verbs" | "Idioms";
 
 interface ResponseData {
+  selectedType: WordType;
   data: any;
   time: number;
   size: string;
@@ -18,6 +20,7 @@ export default function ApiTestPanel() {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastTested, setLastTested] = useState<Date | null>(null);
+  const [selectedType, setSelectedType] = useState<WordType>("Nouns");
 
   const handleTestWorker = async () => {
     setIsLoading(true);
@@ -30,7 +33,7 @@ export default function ApiTestPanel() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ prompt: IDIOM_PROMPT })
+        body: JSON.stringify({ type: selectedType })
       });
       const endTime = performance.now();
       const responseTimeMs = Math.round(endTime - startTime);
@@ -59,8 +62,22 @@ export default function ApiTestPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="space-y-4">
         <h2 className="text-lg font-medium text-[#333333]">Test Your Worker</h2>
+        <div className="flex gap-4">
+          {["Nouns", "Verbs", "Idioms"].map((type) => (
+            <label key={type} className="flex items-center space-x-2">
+              <input
+                type="radio"
+                value={type}
+                checked={selectedType === type}
+                onChange={(e) => setSelectedType(e.target.value as WordType)}
+                className="w-4 h-4"
+              />
+              <span>{type}</span>
+            </label>
+          ))}
+        </div>
         <Button
           onClick={handleTestWorker}
           disabled={isLoading}
