@@ -1,7 +1,4 @@
-
-import { useState } from "react";
-import { Check, Clipboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
 
 interface ResponseDisplayProps {
   response: {
@@ -16,7 +13,7 @@ export default function ResponseDisplay({ response }: ResponseDisplayProps) {
 
   const formatResponse = (data: any) => {
     if (!Array.isArray(data)) return null;
-    
+
     return data.map((item, index) => (
       <div key={index} className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
@@ -51,36 +48,22 @@ export default function ResponseDisplay({ response }: ResponseDisplayProps) {
   };
 
   return (
-    <div className="bg-[#F5F5F5] p-4 rounded-md">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-lg">Response</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          className="inline-flex items-center justify-center px-3 py-1 bg-white hover:bg-gray-50 transition-colors"
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium text-gray-900">Response</h2>
+        <button
           onClick={handleCopyResponse}
+          className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
         >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4 mr-2" />
-              Copied
-            </>
-          ) : (
-            <>
-              <Clipboard className="h-4 w-4 mr-2" />
-              Copy
-            </>
-          )}
-        </Button>
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
       </div>
-      
-      <div className="bg-white border border-gray-200 rounded-md p-4 max-h-[600px] overflow-y-auto">
+      <div className="bg-gray-50 rounded-lg p-4">
         {formatResponse(response.data)}
       </div>
-
-      <div className="flex justify-between items-center mt-3 text-sm text-gray-600">
-        <div>Response time: <span className="font-medium">{response.time} ms</span></div>
-        <div>Size: <span className="font-medium">{response.size}</span></div>
+      <div className="flex justify-between text-sm text-gray-500">
+        <span>Response time: {response.time} ms</span>
+        <span>Size: {response.size}</span>
       </div>
     </div>
   );
