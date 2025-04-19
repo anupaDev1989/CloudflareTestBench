@@ -28,7 +28,7 @@ export default function ApiTestPanel() {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastTested, setLastTested] = useState<Date | null>(null);
-  
+
   // Request configuration
   const [endpoint, setEndpoint] = useState(DEFAULT_ENDPOINT);
   const [method, setMethod] = useState<HttpMethod>("GET");
@@ -38,16 +38,16 @@ export default function ApiTestPanel() {
   const handleTestWorker = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const startTime = performance.now();
-      
+
       // Configure request options based on HTTP method
       const options: RequestInit = {
         method,
         headers: {}
       };
-      
+
       // Add request body for non-GET requests if provided
       if (method !== "GET" && requestBody.trim()) {
         try {
@@ -67,25 +67,25 @@ export default function ApiTestPanel() {
           options.body = requestBody;
         }
       }
-      
+
       const response = await fetch(endpoint, options);
       const endTime = performance.now();
       const responseTimeMs = Math.round(endTime - startTime);
-      
+
       // Get the content type from the response
       const contentType = response.headers.get('content-type') || '';
       const isJson = contentType.includes('application/json');
-      
+
       // Collect all headers
       const headers: Record<string, string> = {};
       response.headers.forEach((value, key) => {
         headers[key] = value;
       });
-      
+
       // Handle different content types
       let data;
       let responseText;
-      
+
       if (isJson) {
         data = await response.json();
         responseText = JSON.stringify(data);
@@ -93,10 +93,10 @@ export default function ApiTestPanel() {
         responseText = await response.text();
         data = responseText; // Store text directly for non-JSON responses
       }
-      
+
       const responseSize = responseText.length;
       const formattedSize = formatBytes(responseSize);
-      
+
       setResponse({
         data,
         time: responseTimeMs,
@@ -108,7 +108,7 @@ export default function ApiTestPanel() {
         headers
       });
       setLastTested(new Date());
-      
+
       // Dispatch custom event for status panel
       const statusEvent = new CustomEvent('workerStatusUpdate', {
         detail: {
@@ -118,11 +118,11 @@ export default function ApiTestPanel() {
         }
       });
       window.dispatchEvent(statusEvent);
-      
+
     } catch (err: any) {
       console.error('Error fetching from worker:', err);
       setError(err.message || 'Failed to connect to the worker');
-      
+
       // Dispatch custom event for status panel
       const statusEvent = new CustomEvent('workerStatusUpdate', {
         detail: {
