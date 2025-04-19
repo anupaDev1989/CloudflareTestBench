@@ -5,6 +5,7 @@ import ResponseDisplay from "./response-display";
 import { formatBytes } from "@/lib/utils";
 
 const WORKER_ENDPOINT = "https://english-gemini-worker1.des9891sl.workers.dev/";
+const IDIOM_PROMPT = "List 3 idioms with their meanings and an example sentense for each idiom";
 
 interface ResponseData {
   data: any;
@@ -24,7 +25,13 @@ export default function ApiTestPanel() {
     
     try {
       const startTime = performance.now();
-      const response = await fetch(WORKER_ENDPOINT);
+      const response = await fetch(WORKER_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: IDIOM_PROMPT })
+      });
       const endTime = performance.now();
       const responseTimeMs = Math.round(endTime - startTime);
       
